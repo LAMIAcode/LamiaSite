@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lamia - Access Granted</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="glitch-bg">
+  <div class="glitch-container">
+    <h1 class="glitch-text" data-text="ACCESS GRANTED">ACCESS GRANTED</h1>
+    <p class="subtitle">Welcome to Lamia's domain.</p>
+    <div class="menu">
+      <a href="#">Music</a>
+      <a href="#">Visuals</a>
+      <a href="#">Manifesto</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+
+  <audio id="glitchSound" autoplay>
+    <source src="glitch.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const audio = document.getElementById('glitchSound');
+    audio.volume = 0.3;
+  </script>
+</body>
+</html>
