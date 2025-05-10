@@ -2,15 +2,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lamia Malware</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Lamia - System Breach</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div id="terminal">
-    <pre>lamia@root:~$ <input id="commandInput" autofocus></pre>
-    <div id="response"></div>
+<body class="inject-bg">
+  <div class="inject-container">
+    <h1>System status: UNKNOWN</h1>
+    <button id="injectBtn">INJECT</button>
+    <div id="consoleOutput" class="console"></div>
   </div>
-  <script src="script.js"></script>
+  <script src="inject.js"></script>
 </body>
 </html>
