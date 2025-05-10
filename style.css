@@ -1,3 +1,8 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 /* Global Styles */
 body {
@@ -85,16 +90,6 @@ body {
   background: rgba(13, 13, 13, 0.4);
 }
 
-.section h1, .section h2 {
-  font-size: 2.5em;
-  margin-bottom: 20px;
-}
-
-.section p {
-  font-size: 1.2em;
-  line-height: 1.6em;
-}
-
 .section a {
   color: #00fff7;
   text-decoration: underline;
@@ -112,3 +107,47 @@ body {
   z-index: -1;
   pointer-events: none;
 }
+
+/* 1. Imposta il font‐size di base */
+html {
+  font-size: 16px;
+}
+/* ——————————————————————————————
+   Fluid typography più ampia
+———————————————————————————————— */
+.section h1 {
+  font-size: clamp(3rem, 8vw, 6rem);
+}
+.section h2 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+}
+.section p {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+/* Fallback “extra-large” per schermi ≤ 600px */
+@media (max-width: 600px) {
+  body {
+    font-size: 22px;
+  }
+  #commandInput {
+    font-size: 1.8rem;
+    width: 90%;
+  }
+  .console {
+    font-size: 1.2rem;
+    width: 100%;
+  }
+  .section h1 {
+    font-size: 3.2rem !important;
+  }
+  .section h2 {
+    font-size: 2.6rem !important;
+  }
+  .section p {
+    font-size: 1.6rem !important;
+    line-height: 1.8 !important;
+  }
+}
+
+
