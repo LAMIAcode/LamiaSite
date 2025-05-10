@@ -108,6 +108,9 @@ body {
   pointer-events: none;
 }
 
+#bg-video { visibility: hidden; }
+#bg-video.loaded { visibility: visible; }
+
 /* 1. Imposta il font‐size di base */
 html {
   font-size: 16px;

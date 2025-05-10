@@ -1,3 +1,7 @@
+const bgVideo = document.getElementById('bg-video');
+bgVideo.addEventListener('canplay', () => {
+  bgVideo.classList.add('loaded');
+});
 
 const input = document.getElementById('commandInput');
 const response = document.getElementById('response');

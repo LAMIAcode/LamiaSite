@@ -7,9 +7,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="home-body">
-  <video id="bg-video" autoplay loop muted playsinline>
-    <source src="glitch_eye.mp4" type="video/mp4">
-  </video>
+  <video
+  id="bg-video"
+  autoplay
+  loop
+  muted
+  playsinline
+  preload="auto"
+  poster="glitch_eye_poster.png"
+>
+  <source src="glitch_eye.mp4" type="video/mp4">
+</video>
   <section class="section">
     <h1>LAMIA</h1>
     <p>Lamia was a queen of Libya who was loved by Zeus. Out of jealousy, Hera killed her children and cursed her with eternal torment. Transformed into a monster, Lamia became a devourer of children and a wandering spirit. Her pain and vengeance lived on, whispered through centuries as a symbol of loss, rage, and darkness.</p>
@@ -39,4 +47,10 @@
     </p>
   </section>
 </body>
+<script>
+  const bgVideo = document.getElementById('bg-video');
+  bgVideo.addEventListener('canplay', () => {
+    bgVideo.classList.add('loaded');
+  });
+</script>
 </html>
