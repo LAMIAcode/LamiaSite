@@ -67,7 +67,8 @@ body {
 /* Home Page Sections */
 .home-body {
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .section {
