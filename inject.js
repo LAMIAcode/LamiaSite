@@ -26,6 +26,11 @@ btn.addEventListener('click', () => {
   statusText.textContent = 'System status: COMPROMISING...';
   statusText.classList.add('glitch-text');
 
+  // Suono e vibrazione
+  const glitchSound = document.getElementById('glitch-sound');
+  if (glitchSound) glitchSound.play().catch(e => console.log('Audio autoplay blocked', e));
+  if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 800]);
+
   let index = 0;
   const interval = setInterval(() => {
     if (index < messages.length) {
