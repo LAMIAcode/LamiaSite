@@ -5,11 +5,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Lamia - System Breach</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="inject-bg">
+<body class="inject-bg crt">
+  <div class="scanlines"></div>
   <div class="inject-container">
-    <h1>System status: UNKNOWN</h1>
+    <h1 id="statusText">System status: INFECTION PENDING... 23%</h1>
     <button id="injectBtn">INJECT</button>
     <div id="consoleOutput" class="console"></div>
   </div>

@@ -3,54 +3,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lamia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lamia - System Compromised</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="home-body">
-  <video
-  id="bg-video"
-  autoplay
-  loop
-  muted
-  playsinline
-  preload="auto"
-  poster="glitch_eye_poster.png"
->
-  <source src="glitch_eye.mp4" type="video/mp4">
-</video>
-  <section class="section">
-    <h1>LAMIA</h1>
-    <p>Lamia was a queen of Libya who was loved by Zeus. Out of jealousy, Hera killed her children and cursed her with eternal torment. Transformed into a monster, Lamia became a devourer of children and a wandering spirit. Her pain and vengeance lived on, whispered through centuries as a symbol of loss, rage, and darkness.</p>
-  </section>
+<body class="home-body crt">
+  <div class="scanlines"></div>
+  <video id="bg-video" autoplay loop muted playsinline preload="auto" poster="glitch_eye_poster.png">
+    <source src="glitch_eye.mp4" type="video/mp4">
+  </video>
+  
+  <div class="terminal-container">
+    <header class="terminal-header">
+      <h1 class="glitch-text">LAMIA_OS // ROOT ACCESS GRANTED</h1>
+      <p id="systemPhase">System status: COMPROMISED</p>
+    </header>
 
-  <section class="section">
-    <h2>Myth becomes signal</h2>
-    <p>Two unknown entities resurrect her story through code. Lamia becomes more than myth,she becomes a virus.</p>
-  </section>
+    <div class="directory-list">
+      <p>Directory listing for C:\USAF\CLASSIFIED\LAMIA:</p>
+      <button class="file-link" onclick="openFile('manifesto')"> [TXT] manifesto.txt</button>
+      <button class="file-link" onclick="openFile('payload')"> [ZIP] lamia_payload.zip</button>
+      <button class="file-link" onclick="openFile('surveillance')"> [MP4] surveillance_footage.mp4</button>
+      <button class="file-link" onclick="openFile('botnet')"> [EXE] join_the_botnet.exe</button>
+    </div>
 
-  <section class="section">
-    <h2>Creation of the Malware</h2>
-    <p>Not for profit. Not for chaos. Lamia.exe is an act of resistance. A precise infection of corrupted systems.</p>
-  </section>
+    <div id="file-viewer" class="file-viewer hidden">
+      <div class="file-header">
+        <span id="file-title">file.txt</span>
+        <button class="close-btn" onclick="closeFile()">[X]</button>
+      </div>
+      <div id="file-content" class="file-content"></div>
+    </div>
 
-  <section class="section">
-    <h2>Sound as a Conduct</h2>
+    <div class="arg-terminal">
+      <label for="commandInput">C:\></label>
+      <input type="text" id="commandInput" autocomplete="off" spellcheck="false" />
+      <div id="response"></div>
+    </div>
+  </div>
+
+  <!-- Content Templates -->
+  <template id="tpl-manifesto">
+    <h2>TOP SECRET // DECLASSIFIED</h2>
+    <p>SUBJECT: LAMIA</p>
+    <p>LOCATION: ABANDONED USAF BASE, SECTOR 4</p>
+    <br>
+    <p>Lamia was a queen of Libya who was loved by Zeus. Out of jealousy, Hera killed her children and cursed her with eternal torment. Transformed into a monster, Lamia became a devourer of children and a wandering spirit.</p>
+    <p>Her pain and vengeance lived on, whispered through centuries as a symbol of loss, rage, and darkness.</p>
+    <br>
+    <p>Two unknown entities resurrect her story through code. Lamia becomes more than myth, she becomes a virus.</p>
+    <p>Not for profit. Not for chaos. Lamia.exe is an act of resistance. A precise infection of corrupted systems. An anti-capitalist, feminist weapon forged from abandoned military tech.</p>
+  </template>
+
+  <template id="tpl-payload">
+    <h2>EXTRACTING lamia_payload.zip...</h2>
     <p>Each track is a data packet, a shot fired into the system. Each sound, a breach.</p>
-    <p>[Lamia's sonic weapon is still under development. Audio payloads will be deployed soon]</p>
-  </section>
+    <div class="music-modules">
+      <div class="module">
+        <h3>> Module 01: Library(of)</h3>
+        <p>[AUDIO STREAM ESTABLISHED - SPOTIFY IFRAME PENDING]</p>
+        <!-- <iframe src="https://open.spotify.com/embed/track/..." width="100%" height="80" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe> -->
+      </div>
+      <div class="module">
+        <h3>> Module 02: Authorless</h3>
+        <p>[AUDIO STREAM ESTABLISHED]</p>
+      </div>
+      <div class="module">
+        <h3>> Module 03: Malware</h3>
+        <p>[AUDIO STREAM ESTABLISHED]</p>
+      </div>
+      <div class="module">
+        <h3>> Module 04: Infection</h3>
+        <p>[AUDIO STREAM ESTABLISHED]</p>
+      </div>
+      <div class="module">
+        <h3>> Module 05: Adiaphora</h3>
+        <p>[AUDIO STREAM ESTABLISHED]</p>
+      </div>
+    </div>
+  </template>
 
-  <section class="section">
-    <h2>Join the Transmission</h2>
-    <p>
-      <a href="https://www.instagram.com/_lamia_dll/" target="_blank">Instagram</a> |
-      <a href="#" target="_blank">Spotify</a>
-    </p>
-  </section>
+  <template id="tpl-surveillance">
+    <h2>CONNECTING TO CCTV NETWORK...</h2>
+    <div class="cctv-grid">
+      <div class="cctv-feed">
+        <div class="cctv-overlay">CAM 01 // REC</div>
+        <p>[Video Stream Placeholder]</p>
+      </div>
+      <div class="cctv-feed">
+        <div class="cctv-overlay">CAM 02 // REC</div>
+        <p>[Video Stream Placeholder]</p>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-botnet">
+    <h2>EXECUTING join_the_botnet.exe...</h2>
+    <p>Become a node in the network. Receive code updates.</p>
+    <form class="botnet-form" onsubmit="event.preventDefault(); alert('Infection spreading...');">
+      <label>> Enter your email (Node ID):</label>
+      <input type="email" required placeholder="node@network.com" class="cli-input">
+      <button type="submit" class="cli-button">CONNECT TO SWARM</button>
+    </form>
+  </template>
+
+  <script src="script.js"></script>
 </body>
-<script>
-  const bgVideo = document.getElementById('bg-video');
-  bgVideo.addEventListener('canplay', () => {
-    bgVideo.classList.add('loaded');
-  });
-</script>
 </html>
