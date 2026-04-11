@@ -53,6 +53,16 @@ function closeFile() {
 // phase 2: EP Release
 let currentPhase = 2; 
 
+function triggerVibration(pattern) {
+  try {
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(pattern);
+    }
+  } catch (err) {
+    console.log('Vibration not supported', err);
+  }
+}
+
 // --- SNAKE GAME LOGIC ---
 let snakeGameInterval;
 let snakeHighScore = localStorage.getItem('lamia_snake_highscore') || 0;
@@ -213,7 +223,7 @@ function initSnakeGame() {
     if (nextX === dataPacket.x && nextY === dataPacket.y) {
       score++;
       document.getElementById('snake-score').innerText = score;
-      if (navigator.vibrate) navigator.vibrate(50); // Piccola vibrazione su mobile
+      triggerVibration(50); // Piccola vibrazione su mobile
       spawnData();
       
       // Ogni 5 punti spawna un nuovo nemico e aumenta la velocità
@@ -255,7 +265,7 @@ function initSnakeGame() {
   function gameOver() {
     clearInterval(snakeGameInterval);
     document.removeEventListener('keydown', keyPush);
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    triggerVibration([200, 100, 200]);
     document.getElementById('snake-gameover').classList.remove('hidden');
     
     currentScore = score;
@@ -330,18 +340,37 @@ const input = document.getElementById('commandInput');
 const response = document.getElementById('response');
 
 // Start drone sound on first interaction
-document.body.addEventListener('click', () => {
+let userInteracted = false;
+function startDrone() {
+  userInteracted = true;
   const drone = document.getElementById('drone-sound');
-  if (drone && drone.paused) {
+  if (drone && drone.paused && !document.hidden) {
     drone.play().catch(e => console.log('Audio autoplay blocked', e));
   }
-}, { once: true });
-document.body.addEventListener('keydown', () => {
+}
+document.body.addEventListener('click', startDrone, { once: true });
+document.body.addEventListener('keydown', startDrone, { once: true });
+document.body.addEventListener('touchstart', startDrone, { once: true });
+
+// Handle Page Visibility API (Background/Foreground Audio & Video Pause)
+document.addEventListener("visibilitychange", () => {
   const drone = document.getElementById('drone-sound');
-  if (drone && drone.paused) {
-    drone.play().catch(e => console.log('Audio autoplay blocked', e));
+  const bgVideo = document.getElementById('bg-video');
+  
+  if (document.hidden) {
+    // La pagina va in background o tab non attiva
+    if (drone) drone.pause();
+    if (bgVideo) bgVideo.pause();
+  } else {
+    // La pagina torna in primo piano
+    if (drone && userInteracted) {
+      drone.play().catch(e => console.log('Resume audio blocked', e));
+    }
+    if (bgVideo) {
+      bgVideo.play().catch(e => console.log('Resume video blocked', e));
+    }
   }
-}, { once: true });
+});
 
 if (input && response) {
   input.addEventListener('keydown', function (e) {

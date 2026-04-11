@@ -21,6 +21,14 @@ const messages = [
   'Welcome to the Swarm.'
 ];
 
+// Gestione API Visibilità per sospendere suoni/video in background
+document.addEventListener("visibilitychange", () => {
+  const glitchSound = document.getElementById('glitch-sound');
+  if (document.hidden) {
+    if (glitchSound) glitchSound.pause();
+  }
+});
+
 btn.addEventListener('click', () => {
   btn.style.display = 'none'; // hide button
   statusText.textContent = 'System status: COMPROMISING...';
@@ -29,7 +37,15 @@ btn.addEventListener('click', () => {
   // Suono e vibrazione
   const glitchSound = document.getElementById('glitch-sound');
   if (glitchSound) glitchSound.play().catch(e => console.log('Audio autoplay blocked', e));
-  if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 800]);
+  
+  // Safe vibration
+  try {
+    if (window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate([400, 200, 400, 200, 800]);
+    }
+  } catch (err) {
+    console.log('Vibration API non supportata o bloccata', err);
+  }
 
   let index = 0;
   const interval = setInterval(() => {
