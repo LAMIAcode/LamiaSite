@@ -23,6 +23,12 @@ body {
   min-height: 100dvh;
 }
 
+/* Utility di visibilità.
+   !important necessario: elementi come .unlocked-btn hanno display:flex,
+   che altrimenti vince sulla regola [hidden]{display:none} dello user-agent. */
+[hidden] { display: none !important; }
+.hidden { display: none !important; }
+
 /* Nascondere la barra di scorrimento ma mantenere lo scrolling */
 ::-webkit-scrollbar {
   display: none;
@@ -504,6 +510,521 @@ body {
   color: #888;
 }
 
+/* ============================================================
+   SIGNAL BLOCK — countdown misteriosi
+   Tutti i colori passano da var(--cli-green), che initPhase()
+   sovrascrive a #ff0033 in fase 2: il blocco eredita il tema.
+   ============================================================ */
+.signal-block {
+  border: 1px dashed var(--cli-green);
+  background: rgba(5, 5, 5, 0.85);
+  padding: 25px 20px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.signal {
+  width: 100%;
+}
+
+.signal-label {
+  font-size: 1rem;
+  letter-spacing: 4px;
+  opacity: 0.7;
+}
+
+.signal-clock {
+  white-space: nowrap;
+  letter-spacing: 2px;
+  line-height: 1.1;
+  animation: signalFlicker 4s infinite steps(1, end);
+  text-shadow: 2px 0 rgba(255, 0, 60, 0.55), -2px 0 rgba(0, 255, 255, 0.4);
+}
+
+.signal-primary .signal-clock {
+  font-size: clamp(1.7rem, 8.5vw, 3.6rem);
+}
+
+.signal-secondary .signal-clock {
+  font-size: clamp(1.05rem, 4.5vw, 1.5rem);
+  opacity: 0.75;
+  text-shadow: 1px 0 rgba(255, 0, 60, 0.45), -1px 0 rgba(0, 255, 255, 0.3);
+}
+
+.signal-secondary .signal-label {
+  font-size: 0.85rem;
+  letter-spacing: 3px;
+  opacity: 0.55;
+}
+
+/* Stato raggiunto: si congela e diventa rosso */
+.signal.acquired .signal-label,
+.signal.acquired .signal-clock {
+  color: #ff0033;
+}
+.signal.acquired .signal-label {
+  opacity: 1;
+  animation: signalFlicker 1.2s infinite steps(1, end);
+}
+
+@keyframes signalFlicker {
+  0%, 42%, 44%, 78%, 100% { opacity: 1; }
+  43% { opacity: 0.55; }
+  79% { opacity: 0.78; }
+}
+
+/* Input sequenza */
+.sequence-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border-top: 1px dashed var(--cli-green);
+  padding-top: 16px;
+}
+
+.sequence-form label {
+  font-size: 1rem;
+  letter-spacing: 3px;
+  opacity: 0.6;
+}
+
+#sequenceInput {
+  max-width: 170px;
+  text-align: center;
+  letter-spacing: 12px;
+  font-size: 1.8rem;
+  text-indent: 12px; /* compensa il letter-spacing sull'ultimo carattere */
+}
+
+.sequence-form.rejected #sequenceInput {
+  animation: shake 0.3s;
+}
+
+.sequence-feedback {
+  font-size: 1.1rem;
+  min-height: 1.5em; /* evita salti di layout quando appare il messaggio */
+}
+
+.sequence-feedback.ok { color: #00ff00; }
+.sequence-feedback.err { color: #ff0033; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* ============================================================
+   CANALI DECRIPTATI — pannello dei minigiochi sbloccati
+   Volutamente diverso dalla directory list: bordo pieno, tag del
+   codice, pulsazione. Deve saltare all'occhio.
+   ============================================================ */
+.unlocked-block {
+  border: 2px solid var(--cli-green);
+  background: rgba(5, 5, 5, 0.9);
+  padding: 18px;
+  margin-bottom: 30px;
+}
+
+/* Pulsa solo quando c'è qualcosa di decriptato da aprire */
+.unlocked-block.has-decrypted {
+  animation: unlockedPulse 2.6s infinite;
+}
+
+@keyframes unlockedPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 0, 51, 0); }
+  50% { box-shadow: 0 0 22px rgba(255, 0, 51, 0.35); }
+}
+
+.unlocked-label {
+  text-align: center;
+  letter-spacing: 4px;
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-bottom: 14px;
+}
+
+.unlocked-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.unlocked-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: transparent;
+  color: var(--cli-green);
+  border: 1px dashed var(--cli-green);
+  font-family: var(--cli-font);
+  text-align: left;
+  cursor: pointer;
+  padding: 14px 16px;
+  min-height: 48px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.unlocked-btn:hover,
+.unlocked-btn:active {
+  background: var(--cli-green);
+  color: var(--cli-bg);
+}
+
+/* Stato cifrato: illeggibile e non apribile */
+.unlocked-btn.locked {
+  border-style: dotted;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unlocked-btn.locked:hover,
+.unlocked-btn.locked:active {
+  background: transparent;
+  color: var(--cli-green);
+}
+
+/* Durante la decifratura */
+.unlocked-btn.decrypting {
+  animation: glitch 0.4s infinite;
+  opacity: 1;
+}
+
+.unlocked-btn-tag {
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  opacity: 0.6;
+}
+
+.unlocked-btn-name {
+  font-size: 1.5rem;
+  line-height: 1.1;
+  word-break: break-all;
+}
+
+.unlocked-btn.locked .unlocked-btn-name {
+  letter-spacing: 1px;
+}
+
+.unlocked-btn-hint {
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   POPUP DEI MINIGIOCHI
+   z-index sopra .crt::before (999) e .scanlines (998)
+   ============================================================ */
+.game-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.93);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.game-modal-box {
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+  border: 2px solid var(--cli-green);
+  background: var(--cli-bg);
+  padding: 20px;
+}
+
+/* Riceve il focus all'apertura: nessun contorno da tastiera */
+.game-modal-box:focus {
+  outline: none;
+}
+
+.game-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed var(--cli-green);
+  margin-bottom: 15px;
+  padding-bottom: 5px;
+  font-size: 1.5rem;
+}
+
+/* Blocca lo scroll della pagina sotto il popup */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ============================================================
+   MEMORY — memory_fragment.dll
+   ============================================================ */
+.mem-wrapper {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.mem-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.4rem;
+  margin-top: 15px;
+}
+
+/* --mem-cols / --mem-rows / --mem-ar sono impostate da script.js a
+   partire da MEM_COLS e MEM_ROWS: la griglia vive in un posto solo. */
+.mem-stage {
+  position: relative;
+  width: min(88vw, 460px);
+  margin: 15px auto 0;
+  aspect-ratio: var(--mem-ar, 4 / 3);
+}
+
+.mem-grid,
+.mem-mosaic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--mem-cols, 4), 1fr);
+  /* righe esplicite: senza queste le righe implicite sarebbero `auto`
+     e le celle non riempirebbero l'altezza dello stage */
+  grid-template-rows: repeat(var(--mem-rows, 3), 1fr);
+}
+
+.mem-grid {
+  gap: 8px;
+  transition: opacity 0.6s;
+}
+
+.mem-grid.faded {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mem-tile {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  perspective: 600px;
+  font-family: var(--cli-font);
+}
+
+.mem-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s;
+}
+
+.mem-tile.flipped .mem-inner {
+  transform: rotateY(180deg);
+}
+
+.mem-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cli-green);
+  backface-visibility: hidden;
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+}
+
+.mem-back {
+  background: rgba(5, 5, 5, 0.9);
+  color: var(--cli-green);
+  opacity: 0.75;
+}
+
+.mem-front {
+  transform: rotateY(180deg);
+  background: var(--cli-green);
+  color: var(--cli-bg);
+}
+
+.mem-tile.matched {
+  pointer-events: none;
+}
+
+/* Tre stati, tre colori distinti:
+   - coperta      -> fondo nero, glifo ▚ nel colore del tema
+   - selezionata  -> fondo pieno nel colore del tema (rosso in fase 2)
+   - trovata      -> bianco: resta girata col simbolo, chiaramente diversa */
+.mem-tile.matched .mem-front {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: #fff;
+  color: #fff;
+}
+
+.mem-cell {
+  background-repeat: no-repeat;
+  /* ogni cella mostra 1/(cols*rows) dell'immagine */
+  background-size: calc(var(--mem-cols, 4) * 100%) calc(var(--mem-rows, 3) * 100%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.mem-cell.on {
+  opacity: 1;
+}
+
+.mem-reveal {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.mem-reveal-title {
+  animation: glitch 0.5s infinite;
+  margin-bottom: 5px;
+}
+
+.mem-reveal-msg,
+.runner-reward-msg {
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+.asset-pending {
+  color: #ff0033;
+  opacity: 1;
+}
+
+.mem-controls,
+.runner-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: 20px;
+}
+
+/* ============================================================
+   RUNNER — escape_vector.exe
+   ============================================================ */
+.runner-wrapper {
+  max-width: 700px;
+  margin: 20px auto 0;
+}
+
+.runner-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.4rem;
+}
+
+.runner-progress {
+  height: 10px;
+  border: 1px solid var(--cli-green);
+  margin: 8px 0 12px;
+}
+
+.runner-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--cli-green);
+  transition: width 0.1s linear;
+}
+
+.runner-stage {
+  position: relative;
+}
+
+#runner-canvas {
+  border: 2px solid var(--cli-green);
+  background: #050505;
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none; /* impedisce lo scroll durante il tap di salto */
+}
+
+.runner-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.92);
+  border: 2px solid #ff0033;
+  color: #ff0033;
+  padding: 20px;
+  text-align: center;
+  z-index: 100;
+  max-width: 90%;
+}
+
+.runner-overlay h3 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  animation: glitch 0.5s infinite;
+}
+
+.runner-overlay.win {
+  border-color: var(--cli-green);
+  color: var(--cli-green);
+}
+
+.runner-controls p {
+  font-size: 1.1rem;
+  color: #888;
+  margin: 0;
+}
+
+.runner-reward {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.runner-reward-title {
+  animation: glitch 0.5s infinite;
+  margin-bottom: 10px;
+}
+
+.reward-video {
+  width: 100%;
+  max-width: 700px;
+  border: 1px solid var(--cli-green);
+  background: #000;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Rispetto delle preferenze di movimento ridotto */
+@media (prefers-reduced-motion: reduce) {
+  .signal-clock,
+  .signal.acquired .signal-label,
+  .unlocked-block.has-decrypted,
+  .unlocked-btn.decrypting,
+  .mem-reveal-title,
+  .runner-reward-title,
+  .runner-overlay h3,
+  .glitch-text,
+  .ascii-face {
+    animation: none !important;
+  }
+
+  .mem-inner {
+    transition: none;
+  }
+
+  .signal-clock {
+    text-shadow: none;
+  }
+}
+
 /* Responsive & Mobile Optimization (320px - 768px) */
 @media (max-width: 768px) {
   .terminal-container {
@@ -561,6 +1082,44 @@ body {
   .snake-wrapper {
     flex-direction: column;
     align-items: center;
+  }
+
+  .signal-block {
+    padding: 18px 12px;
+    gap: 14px;
+  }
+
+  .signal-label {
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+  }
+
+  .unlocked-label {
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+  }
+
+  .unlocked-btn-name {
+    font-size: 1.25rem;
+  }
+
+  #sequenceInput {
+    font-size: 1.5rem;
+    letter-spacing: 10px;
+    text-indent: 10px;
+  }
+
+  .mem-header,
+  .runner-header {
+    font-size: 1.1rem;
+  }
+
+  .mem-grid {
+    gap: 6px;
+  }
+
+  .runner-controls p {
+    font-size: 1rem;
   }
 }
 

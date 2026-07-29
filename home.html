@@ -15,17 +15,17 @@
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://lamiadll.com/home.html">
+  <meta property="og:url" content="https://www.lamiadll.com/home.html">
   <meta property="og:title" content="Lamia - System Compromised">
   <meta property="og:description" content="Access the Lamia OS. Listen to the payload, read the manifesto, and become a node in the botnet network.">
-  <meta property="og:image" content="https://lamiadll.com/glitch_eye_poster.png">
+  <meta property="og:image" content="https://www.lamiadll.com/glitch_eye_poster.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://lamiadll.com/home.html">
+  <meta property="twitter:url" content="https://www.lamiadll.com/home.html">
   <meta property="twitter:title" content="Lamia - System Compromised">
   <meta property="twitter:description" content="Access the Lamia OS. Listen to the payload, read the manifesto, and become a node in the botnet network.">
-  <meta property="twitter:image" content="https://lamiadll.com/glitch_eye_poster.png">
+  <meta property="twitter:image" content="https://www.lamiadll.com/glitch_eye_poster.png">
   
   <!-- Favicon / App Icons -->
   <link rel="icon" type="image/x-icon" href="ico/favicon.ico" />
@@ -35,11 +35,12 @@
   
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
-  <link rel="canonical" href="https://lamiadll.com/" />
+  <link rel="canonical" href="https://www.lamiadll.com/home.html" />
 </head>
 <body class="home-body crt">
   <div class="scanlines"></div>
   <audio id="drone-sound" src="drone.mp3" loop autoplay preload="auto"></audio>
+  <audio id="glitch-sound" src="glitch.mp3" preload="auto"></audio>
   <video id="bg-video" autoplay loop muted playsinline preload="auto" poster="glitch_eye_poster.png">
     <source src="glitch_eye.mp4" type="video/mp4">
   </video>
@@ -49,6 +50,52 @@
       <h1 class="glitch-text">LAMIA_OS // ROOT ACCESS GRANTED</h1>
       <p id="systemPhase">System status: COMPROMISED</p>
     </header>
+
+    <section class="signal-block">
+      <div class="signal signal-primary">
+        <div class="signal-label" data-label-idle="◢ INCOMING TRANSMISSION ◣">◢ INCOMING TRANSMISSION ◣</div>
+        <div class="signal-clock" data-target="2026-10-04T23:00:00Z">T-___:__:__:__</div>
+      </div>
+      <div class="signal signal-secondary">
+        <div class="signal-label" data-label-idle="◢ SECONDARY VECTOR ◣">◢ SECONDARY VECTOR ◣</div>
+        <div class="signal-clock" data-target="2026-11-02T00:00:00Z">T-___:__:__:__</div>
+      </div>
+      <form class="sequence-form" id="sequenceForm" autocomplete="off">
+        <label for="sequenceInput">&gt; ENTER SEQUENCE</label>
+        <input id="sequenceInput" class="cli-input" type="text" inputmode="numeric"
+               maxlength="4" spellcheck="false" placeholder="____" aria-label="Access sequence"
+               autocomplete="off" autocorrect="off" autocapitalize="off">
+        <div id="sequenceFeedback" class="sequence-feedback" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <!-- Sempre visibili ma cifrati: si sa che ci sono due canali, non
+         cosa siano. Il nome si decripta solo con la sequenza corretta.
+         data-name e data-hint sono il testo in chiaro, rivelato da
+         decryptChannel() in script.js. -->
+    <section id="unlocked-block" class="unlocked-block">
+      <div class="unlocked-label" id="unlocked-label">◢ ENCRYPTED CHANNELS ◣</div>
+      <div class="unlocked-grid">
+        <button class="unlocked-btn locked" id="memory-entry" disabled
+                data-code="0510"
+                data-name="memory_fragment.dll"
+                data-hint="an image was shredded &mdash; rebuild it"
+                onclick="openGame('memory')">
+          <span class="unlocked-btn-tag">????</span>
+          <span class="unlocked-btn-name"></span>
+          <span class="unlocked-btn-hint">[ENCRYPTED // KEY REQUIRED]</span>
+        </button>
+        <button class="unlocked-btn locked" id="runner-entry" disabled
+                data-code="0211"
+                data-name="escape_vector.exe"
+                data-hint="run the tunnel &mdash; reach the far end"
+                onclick="openGame('runner')">
+          <span class="unlocked-btn-tag">????</span>
+          <span class="unlocked-btn-name"></span>
+          <span class="unlocked-btn-hint">[ENCRYPTED // KEY REQUIRED]</span>
+        </button>
+      </div>
+    </section>
 
     <div class="directory-list">
       <p>Directory listing for C:\USAF\CLASSIFIED\LAMIA:</p>
@@ -98,6 +145,18 @@
         </ul>
       </div>
     </footer>
+  </div>
+
+  <!-- Popup dei minigiochi sbloccati: in sovraimpressione su tutto,
+       deliberatamente diverso dal file-viewer inline -->
+  <div id="game-modal" class="game-modal" hidden>
+    <div class="game-modal-box" role="dialog" aria-modal="true" aria-labelledby="game-modal-title" tabindex="-1">
+      <div class="game-modal-header">
+        <span id="game-modal-title" class="glitch-text">channel</span>
+        <button class="close-btn" onclick="closeGameModal()" aria-label="Close">[X]</button>
+      </div>
+      <div id="game-modal-content" class="game-modal-content"></div>
+    </div>
   </div>
 
   <!-- Content Templates -->
@@ -196,6 +255,62 @@
         <ul id="leaderboard-list">
           <!-- Populated by JS -->
         </ul>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-memory">
+    <h2>MOUNTING memory_fragment.dll...</h2>
+    <p>An image was shredded across the sectors. Match the corrupted byte pairs to rebuild it.</p>
+    <p>Nothing in this archive is here by accident.</p>
+    <div class="mem-wrapper">
+      <div class="mem-header">
+        <span>MOVES: <span id="mem-moves">0</span></span>
+        <span>SECTORS: <span id="mem-pairs">0</span>/<span id="mem-total">6</span></span>
+      </div>
+      <div class="mem-stage">
+        <div id="mem-grid" class="mem-grid"></div>
+        <div id="mem-mosaic" class="mem-mosaic hidden" aria-hidden="true"></div>
+      </div>
+      <div id="mem-reveal" class="mem-reveal hidden">
+        <h3 class="mem-reveal-title">FRAGMENT RECONSTRUCTED</h3>
+        <p id="mem-reveal-msg" class="mem-reveal-msg"></p>
+      </div>
+      <div class="mem-controls">
+        <button class="cli-button" onclick="initMemoryGame()">REBOOT SECTORS</button>
+        <button class="cli-button" id="mem-view" hidden onclick="showMemoryReveal()">VIEW FRAGMENT</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-runner">
+    <h2>EXECUTING escape_vector.exe...</h2>
+    <p>A stray process is running the length of the tunnel. Jump the firewalls. Reach the end of the vector.</p>
+    <p>Something is waiting on the other side. It has not been broadcast yet.</p>
+    <div class="runner-wrapper">
+      <div class="runner-header">
+        <span>INTEGRITY: <span id="runner-integrity">###</span></span>
+        <span>VECTOR: <span id="runner-distance">0</span>%</span>
+      </div>
+      <div class="runner-progress"><div id="runner-progress-bar" class="runner-progress-bar"></div></div>
+      <div class="runner-stage">
+        <canvas id="runner-canvas" width="700" height="220"></canvas>
+        <div id="runner-overlay" class="runner-overlay hidden">
+          <h3 id="runner-overlay-title">PROCESS TERMINATED</h3>
+          <p id="runner-overlay-msg"></p>
+          <button class="cli-button" id="runner-retry" onclick="initRunnerGame()">REBOOT PROCESS</button>
+        </div>
+      </div>
+      <div class="runner-controls">
+        <p>SPACE / ARROW UP / TAP TO JUMP &mdash; HOLD TO JUMP HIGHER</p>
+        <button class="cli-button" id="runner-view" hidden onclick="showRunnerReward()">VIEW TRANSMISSION</button>
+      </div>
+      <div id="runner-reward" class="runner-reward hidden">
+        <h3 class="runner-reward-title">TRANSMISSION UNLOCKED</h3>
+        <video id="runner-video" class="reward-video" controls playsinline preload="none" poster="glitch_eye_poster.png">
+          <source id="runner-video-src" src="video/reveal_0211.mp4" type="video/mp4">
+        </video>
+        <p id="runner-reward-msg" class="runner-reward-msg"></p>
       </div>
     </div>
   </template>

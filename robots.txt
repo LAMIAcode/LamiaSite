@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://lamiadll.com/sitemap.xml
+Sitemap: https://www.lamiadll.com/sitemap.xml
