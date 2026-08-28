@@ -385,6 +385,7 @@ body {
 .social-links {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap; /* senza questo i tre link sforano su schermi stretti */
   gap: 30px;
   list-style: none;
   padding: 0;
@@ -993,13 +994,32 @@ body.modal-open {
   margin-bottom: 10px;
 }
 
+/* Il video premio e' verticale 9:16: si vincola l'altezza, non la
+   larghezza, altrimenti a 700px di base diventerebbe alto 1244px. */
 .reward-video {
-  width: 100%;
-  max-width: 700px;
+  width: auto;
+  max-width: 100%;
+  max-height: min(70vh, 620px);
   border: 1px solid var(--cli-green);
   background: #000;
   display: block;
   margin: 0 auto;
+}
+
+/* Su schermi stretti il canvas del runner e' alto un centinaio di pixel:
+   l'overlay di fine partita non ci sta sopra e sborderebbe sul testo.
+   Sotto i 560px scorre nel flusso, subito sotto al canvas. */
+@media (max-width: 560px) {
+  .runner-overlay {
+    position: static;
+    transform: none;
+    max-width: 100%;
+    margin-top: 12px;
+  }
+
+  .runner-overlay h3 {
+    font-size: 1.4rem;
+  }
 }
 
 /* Rispetto delle preferenze di movimento ridotto */

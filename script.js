@@ -5,7 +5,7 @@
 // Immagine rivelata risolvendo memory_fragment.dll e video mostrato
 // completando escape_vector.exe. Finché i file non esistono, i due
 // minigiochi mostrano un messaggio "asset pending" invece di rompersi.
-const MEMORY_REVEAL_SRC = 'img/reveal_0510.png';
+const MEMORY_REVEAL_SRC = 'img/reveal_0510.jpg';
 const RUNNER_REWARD_SRC = 'video/reveal_0211.mp4';
 
 // Vite del runner. Alzalo per rendere il percorso più accessibile.
@@ -197,6 +197,10 @@ function themeColor() {
   return value || '#0f0';
 }
 
+// Suona SOLO quando una sequenza corretta sblocca qualcosa di nuovo.
+// Volutamente non usato al termine dei minigiochi: era fastidioso.
+// (l'altro punto in cui parte glitch.mp3 e' il bottone INJECT di
+// index.html, gestito da inject.js)
 function playGlitchStinger() {
   const glitch = document.getElementById('glitch-sound');
   if (!glitch) return;
@@ -927,7 +931,6 @@ function solveMemoryGame() {
     console.log('localStorage non scrivibile', err);
   }
   triggerVibration([200, 80, 200]);
-  playGlitchStinger();
   showMemoryReveal();
 }
 
@@ -1184,7 +1187,6 @@ function initRunnerGame() {
       console.log('localStorage non scrivibile', err);
     }
     triggerVibration([120, 60, 120, 60, 300]);
-    playGlitchStinger();
     showRunnerOverlay('VECTOR CLEARED',
       'The tunnel ends here. Something came through with you.', true);
     showRunnerReward();
@@ -1366,16 +1368,42 @@ function showRunnerReward() {
   });
 }
 
-// Il drone di sottofondo è in loop: va sospeso mentre parte il video,
-// altrimenti i due audio si sovrappongono.
+/* ---------------- Priorita' audio ----------------
+   Il drone di sottofondo e' in loop e ha `autoplay`: mentre un video del
+   sito e' in riproduzione deve tacere, altrimenti i due audio si
+   sovrappongono. Un solo punto di verita' interrogato da tutti i punti
+   che potrebbero far ripartire il drone. */
+
+// Copre il video premio del runner e qualunque video futuro aggiunto nel
+// popup o nel file viewer. Esclude #bg-video, che e' muto.
+function isSiteVideoPlaying() {
+  const videos = document.querySelectorAll('#game-modal video, #file-viewer video');
+  return Array.from(videos).some(v => !v.paused && !v.ended);
+}
+
+function stopDrone() {
+  const drone = document.getElementById('drone-sound');
+  if (drone && !drone.paused) drone.pause();
+}
+
+// Rete di sicurezza: qualunque cosa faccia ripartire il drone (autoplay
+// tardivo, primo click dell'utente, ritorno in primo piano, codice
+// futuro), se un video sta suonando il drone viene rimesso in pausa.
+function guardDroneAudio() {
+  const drone = document.getElementById('drone-sound');
+  if (!drone) return;
+  drone.addEventListener('play', () => {
+    if (isSiteVideoPlaying()) drone.pause();
+  });
+}
+
 function bindRewardVideoAudio(video) {
   if (video.dataset.audioBound === '1') return;
   video.dataset.audioBound = '1';
 
-  const drone = document.getElementById('drone-sound');
-  if (!drone) return;
-
-  video.addEventListener('play', () => drone.pause());
+  // `play` scatta alla richiesta, `playing` quando parte davvero
+  video.addEventListener('play', stopDrone);
+  video.addEventListener('playing', stopDrone);
   video.addEventListener('pause', resumeDrone);
   video.addEventListener('ended', resumeDrone);
 }
@@ -1385,6 +1413,8 @@ function resumeDrone() {
   if (!drone || !drone.paused) return;
   // Solo se l'utente ha già interagito, altrimenti il browser blocca
   if (!userInteracted || document.hidden) return;
+  // Il video ha la precedenza sul sottofondo
+  if (isSiteVideoPlaying()) return;
   drone.play().catch(e => console.log('Resume audio blocked', e));
 }
 
@@ -1424,6 +1454,7 @@ initChannels();
 applyUnlocks();
 initSequenceForm();
 initGameModal();
+guardDroneAudio();
 
 const input = document.getElementById('commandInput');
 const response = document.getElementById('response');
@@ -1432,6 +1463,9 @@ const response = document.getElementById('response');
 let userInteracted = false;
 function startDrone() {
   userInteracted = true;
+  // I tre listener `once` (click/keydown/touchstart) sono indipendenti:
+  // uno puo' restare armato e scattare mentre il video sta suonando.
+  if (isSiteVideoPlaying()) return;
   const drone = document.getElementById('drone-sound');
   if (drone && drone.paused && !document.hidden) {
     drone.play().catch(e => console.log('Audio autoplay blocked', e));
@@ -1452,10 +1486,8 @@ document.addEventListener("visibilitychange", () => {
     if (bgVideo) bgVideo.pause();
   } else {
     // La pagina torna in primo piano.
-    // Il drone non riparte se il video premio è in riproduzione.
-    const rewardVideo = document.getElementById('runner-video');
-    const rewardPlaying = rewardVideo && !rewardVideo.paused && !rewardVideo.ended;
-    if (drone && userInteracted && !rewardPlaying) {
+    // Il drone non riparte se un video del sito è in riproduzione.
+    if (drone && userInteracted && !isSiteVideoPlaying()) {
       drone.play().catch(e => console.log('Resume audio blocked', e));
     }
     if (bgVideo) {
