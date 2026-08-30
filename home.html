@@ -55,10 +55,26 @@
       <div class="signal signal-primary">
         <div class="signal-label" data-label-idle="◢ INCOMING TRANSMISSION ◣">◢ INCOMING TRANSMISSION ◣</div>
         <div class="signal-clock" data-target="2026-10-04T23:00:00Z">T-___:__:__:__</div>
+        <!-- popolato da initCountdowns() quando il countdown arriva a zero -->
+        <div class="signal-release hidden">
+          <a class="signal-release-cover" href="#" target="_blank" rel="noopener">
+            <img alt="">
+            <span class="signal-release-name"></span>
+            <span class="signal-release-hint">&#9656; open on spotify</span>
+          </a>
+        </div>
       </div>
       <div class="signal signal-secondary">
         <div class="signal-label" data-label-idle="◢ SECONDARY VECTOR ◣">◢ SECONDARY VECTOR ◣</div>
         <div class="signal-clock" data-target="2026-11-02T00:00:00Z">T-___:__:__:__</div>
+        <!-- popolato da initCountdowns() quando il countdown arriva a zero -->
+        <div class="signal-release hidden">
+          <a class="signal-release-cover" href="#" target="_blank" rel="noopener">
+            <img alt="">
+            <span class="signal-release-name"></span>
+            <span class="signal-release-hint">&#9656; open on spotify</span>
+          </a>
+        </div>
       </div>
       <form class="sequence-form" id="sequenceForm" autocomplete="off">
         <label for="sequenceInput">&gt; ENTER SEQUENCE</label>
@@ -94,6 +110,17 @@
           <span class="unlocked-btn-name"></span>
           <span class="unlocked-btn-hint">[ENCRYPTED // KEY REQUIRED]</span>
         </button>
+        <!-- Questo non si apre con un codice: la chiave e' il punteggio
+             raggiunto in bypass_firewall.exe -->
+        <button class="unlocked-btn locked" id="snake-entry" disabled
+                data-code="snake20"
+                data-name="cctv_still.jpg"
+                data-hint="a photograph nobody was supposed to keep"
+                onclick="openGame('still')">
+          <span class="unlocked-btn-tag">????</span>
+          <span class="unlocked-btn-name"></span>
+          <span class="unlocked-btn-hint">[ENCRYPTED // KEY REQUIRED]</span>
+        </button>
       </div>
     </section>
 
@@ -122,7 +149,7 @@
 
     <footer class="terminal-footer">
       <div class="footer-content">
-        <img src="glitch_eye_poster.png" alt="Lamia Eye" class="footer-eye-img" loading="lazy">
+        <img src="img/logo.jpg" alt="Lamia" class="footer-eye-img" loading="lazy">
         <ul class="social-links">
           <li>
             <a href="https://instagram.com/_lamia_dll/" target="_blank" class="social-link">
@@ -204,12 +231,16 @@
     <h2>CONNECTING TO CCTV NETWORK...</h2>
     <div class="cctv-grid">
       <div class="cctv-feed">
-        <div class="cctv-overlay">CAM 01 // REC</div>
-        <p>[Video Stream Placeholder]</p>
+        <div class="cctv-overlay">CAM 01 // AUTHORLESS</div>
+        <video class="cctv-video" controls muted playsinline preload="none" poster="glitch_eye_poster.png">
+          <source src="video/footage_authorless.mp4" type="video/mp4">
+        </video>
       </div>
       <div class="cctv-feed">
-        <div class="cctv-overlay">CAM 02 // REC</div>
-        <p>[Video Stream Placeholder]</p>
+        <div class="cctv-overlay">CAM 02 // SPEECH</div>
+        <video class="cctv-video" controls muted playsinline preload="none" poster="glitch_eye_poster.png">
+          <source src="video/footage_speech.mp4" type="video/mp4">
+        </video>
       </div>
     </div>
   </template>
@@ -235,6 +266,22 @@
           <span>SCORE: <span id="snake-score">0</span></span>
           <span>HIGH SCORE: <span id="snake-highscore">0</span></span>
         </div>
+        <!-- Avviso in linea, non sopra al canvas: il campo di gioco resta
+             sempre visibile. Premuto BEGIN si riduce a una riga sola. -->
+        <div id="snake-briefing" class="snake-briefing hidden">
+          <div class="snake-briefing-full">
+            <h3>&#9698; TRANSMISSION INTERCEPTED &#9699;</h3>
+            <p>Reach <span id="snake-briefing-score">15</span> on this system
+               and something buried will surface.</p>
+            <p class="snake-briefing-sub">Nobody was supposed to keep a copy.</p>
+            <p class="snake-briefing-where">It will decrypt in
+               &#9698; ENCRYPTED CHANNELS &#9699; at the top of this page.</p>
+            <button class="cli-button" id="snake-begin">BEGIN</button>
+          </div>
+          <p class="snake-briefing-mini">
+            &#9656; TARGET: <span id="snake-briefing-score-mini">15</span> &mdash; something buried will surface
+          </p>
+        </div>
         <canvas id="snake-canvas" width="400" height="400"></canvas>
         <div id="snake-gameover" class="hidden">
           <h3>FIREWALL INTERCEPTED</h3>
@@ -248,6 +295,8 @@
         </div>
         <div class="snake-controls">
           <p>USE ARROW KEYS OR SWIPE TO MOVE</p>
+          <button type="button" id="snake-unlock-note" class="snake-unlock-note" hidden
+                  onclick="goToUnlockedChannel()"></button>
         </div>
       </div>
       <div class="snake-leaderboard">
@@ -270,10 +319,12 @@
       </div>
       <div class="mem-stage">
         <div id="mem-grid" class="mem-grid"></div>
-        <div id="mem-mosaic" class="mem-mosaic hidden" aria-hidden="true"></div>
       </div>
       <div id="mem-reveal" class="mem-reveal hidden">
         <h3 class="mem-reveal-title">FRAGMENT RECONSTRUCTED</h3>
+        <video id="mem-video" class="reward-video" controls playsinline preload="none" poster="glitch_eye_poster.png">
+          <source src="video/reveal_0510.mp4" type="video/mp4">
+        </video>
         <p id="mem-reveal-msg" class="mem-reveal-msg"></p>
       </div>
       <div class="mem-controls">
@@ -312,6 +363,17 @@
         </video>
         <p id="runner-reward-msg" class="runner-reward-msg"></p>
       </div>
+    </div>
+  </template>
+
+  <template id="tpl-still">
+    <h2>DECRYPTING cctv_still.jpg...</h2>
+    <p>Recovered from a drive that was supposed to be wiped.</p>
+    <div class="mem-wrapper">
+      <div class="mem-stage">
+        <div id="still-mosaic" class="mem-mosaic hidden" aria-hidden="true"></div>
+      </div>
+      <p id="still-msg" class="mem-reveal-msg"></p>
     </div>
   </template>
 

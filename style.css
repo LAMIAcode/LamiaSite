@@ -377,7 +377,7 @@ body {
 .footer-eye-img {
   width: 50px;
   height: 50px;
-  object-fit: cover;
+  object-fit: contain;   /* il logo e' gia' quadrato: non va ritagliato */
   border-radius: 50%;
   border: 1px solid var(--cli-green);
 }
@@ -999,6 +999,8 @@ body.modal-open {
 .reward-video {
   width: auto;
   max-width: 100%;
+  /* Come sopra: evita il salto di layout con preload="none" */
+  aspect-ratio: 9 / 16;
   max-height: min(70vh, 620px);
   border: 1px solid var(--cli-green);
   background: #000;
@@ -1022,9 +1024,162 @@ body.modal-open {
   }
 }
 
+/* ============================================================
+   BRIEFING DELLO SNAKE — avviso prima di iniziare
+   Stesso posizionamento di #snake-gameover, che e' gia' sopra al canvas
+   ============================================================ */
+/* In linea sopra al canvas, non sovrapposto: il campo resta visibile.
+   A partita avviata si riduce alla sola riga .snake-briefing-mini. */
+.snake-briefing {
+  border: 2px solid var(--cli-green);
+  background: rgba(5, 5, 5, 0.9);
+  padding: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.snake-briefing-mini {
+  margin: 0;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+  opacity: 0.75;
+}
+
+/* Prima di BEGIN si vede il testo esteso, dopo solo la riga breve */
+.snake-briefing .snake-briefing-mini { display: none; }
+.snake-briefing.running .snake-briefing-full { display: none; }
+.snake-briefing.running .snake-briefing-mini { display: block; }
+.snake-briefing.running { padding: 8px 12px; }
+
+.snake-briefing h3 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+.snake-briefing p {
+  font-size: 1.1rem;
+  margin: 8px 0;
+}
+
+.snake-briefing-sub {
+  opacity: 0.6;
+}
+
+.snake-briefing-where {
+  font-size: 1rem;
+  opacity: 0.7;
+  border-top: 1px dashed var(--cli-green);
+  padding-top: 8px;
+  margin-top: 10px;
+}
+
+/* Cliccabile: porta al canale appena sbloccato */
+.snake-unlock-note {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--cli-green);
+  color: var(--cli-green);
+  font-family: var(--cli-font);
+  font-size: 1.1rem;
+  padding: 10px;
+  min-height: 48px;
+  cursor: pointer;
+  animation: signalFlicker 2s infinite steps(1, end);
+}
+
+.snake-unlock-note:hover,
+.snake-unlock-note:active {
+  background: var(--cli-green);
+  color: var(--cli-bg);
+}
+
+/* ============================================================
+   FEED CCTV — i placeholder sono diventati video verticali 9:16
+   ============================================================ */
+.cctv-feed {
+  height: auto;          /* prima era fissa a 200px per i placeholder */
+  padding: 0;
+  overflow: hidden;
+}
+
+.cctv-video {
+  width: 100%;
+  height: auto;
+  /* Riserva lo spazio prima che i metadati arrivino: con preload="none"
+     il video non ha dimensioni intrinseche e il layout salterebbe. */
+  aspect-ratio: 9 / 16;
+  max-height: 60vh;
+  display: block;
+  background: #000;
+}
+
+/* ============================================================
+   COUNTDOWN SCADUTO — annuncio dell'uscita
+   ============================================================ */
+.signal-release {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Copertina cliccabile: porta allo stesso link Spotify del bottone */
+.signal-release-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  max-width: 280px;
+  transition: transform 0.2s;
+}
+
+.signal-release-cover:hover,
+.signal-release-cover:focus-visible {
+  transform: scale(1.03);
+}
+
+.signal-release-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 2px solid var(--cli-green);
+}
+
+.signal-release-cover.no-cover img {
+  display: none;
+}
+
+/* Con il bottone rimosso, la copertina e' l'unico accesso a Spotify */
+.signal-release-hint {
+  font-size: 1rem;
+  letter-spacing: 2px;
+  opacity: 0.55;
+}
+
+/* Il secondo countdown resta subordinato al primo anche da rilasciato */
+.signal-secondary .signal-release-cover {
+  max-width: 190px;
+}
+
+.signal-secondary .signal-release-name {
+  font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+}
+
+.signal-release-name {
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  letter-spacing: 2px;
+  color: var(--cli-green);
+  text-shadow: 2px 0 rgba(255, 0, 60, 0.55), -2px 0 rgba(0, 255, 255, 0.4);
+}
+
 /* Rispetto delle preferenze di movimento ridotto */
 @media (prefers-reduced-motion: reduce) {
   .signal-clock,
+  .snake-unlock-note,
   .signal.acquired .signal-label,
   .unlocked-block.has-decrypted,
   .unlocked-btn.decrypting,

@@ -2,14 +2,36 @@
    CONFIG — unico punto da modificare per gli asset e la difficoltà
    ============================================================ */
 
-// Immagine rivelata risolvendo memory_fragment.dll e video mostrato
-// completando escape_vector.exe. Finché i file non esistono, i due
-// minigiochi mostrano un messaggio "asset pending" invece di rompersi.
-const MEMORY_REVEAL_SRC = 'img/reveal_0510.jpg';
-const RUNNER_REWARD_SRC = 'video/reveal_0211.mp4';
+// Contenuti premio dei tre minigiochi. Finché un file non esiste, il
+// gioco mostra un messaggio "asset pending" invece di rompersi.
+const MEMORY_REWARD_SRC = 'video/reveal_0510.mp4';   // memory   (codice 0510)
+const RUNNER_REWARD_SRC = 'video/reveal_0211.mp4';   // runner   (codice 0211)
+const SNAKE_REWARD_SRC  = 'img/reveal_snake.jpg';    // snake    (20 punti)
 
 // Vite del runner. Alzalo per rendere il percorso più accessibile.
 const RUNNER_MAX_INTEGRITY = 3;
+
+// Punteggio dello snake che sblocca la foto. Regolabile.
+const SNAKE_REWARD_SCORE = 15;
+
+// Link Spotify mostrati allo scadere dei countdown.
+// TODO: sostituire con gli URL definitivi del singolo e dell'EP appena
+// escono; per ora puntano entrambi al profilo artista.
+const SPOTIFY_ARTIST = 'https://open.spotify.com/artist/2hY1De0uuhwke8wYOS4aI5';
+const SPOTIFY_INFECTION_URL = SPOTIFY_ARTIST;
+const SPOTIFY_LAMIA_URL     = SPOTIFY_ARTIST;
+
+// Cosa esce a ciascuna scadenza, indicizzato per data-target
+const RELEASES = {
+  '2026-10-04T23:00:00Z': {
+    name: 'INFECTION',  kind: 'SINGLE', url: SPOTIFY_INFECTION_URL,
+    cover: 'img/cover_infection.jpg'
+  },
+  '2026-11-02T00:00:00Z': {
+    name: 'L.A.M.I.A.', kind: 'EP',     url: SPOTIFY_LAMIA_URL,
+    cover: 'img/cover_lamia.jpg'
+  }
+};
 
 // NOTA: le scadenze dei countdown stanno negli attributi data-target
 // di home.html, espresse in UTC per risultare identiche in ogni fuso.
@@ -32,18 +54,20 @@ const FILE_TITLES = {
   'botnet': 'join_the_botnet.odt',
   'snake': 'bypass_firewall.exe',
   'memory': 'memory_fragment.dll',
-  'runner': 'escape_vector.exe'
+  'runner': 'escape_vector.exe',
+  'still': 'cctv_still.jpg'
 };
 
 const FILE_INITS = {
   'snake': initSnakeGame,
   'memory': initMemoryGame,
-  'runner': initRunnerGame
+  'runner': initRunnerGame,
+  'still': initStillReveal
 };
 
-// Minigiochi sbloccati a codice: non sono file della directory, si
-// aprono in un popup a tutto schermo.
-const MODAL_GAMES = ['memory', 'runner'];
+// Contenuti sbloccati: non sono file della directory, si aprono in un
+// popup a tutto schermo.
+const MODAL_GAMES = ['memory', 'runner', 'still'];
 
 function openFile(fileId) {
   const viewer = document.getElementById('file-viewer');
@@ -65,6 +89,7 @@ function openFile(fileId) {
 
   content.innerHTML = template.innerHTML;
   title.textContent = FILE_TITLES[fileId] || fileId;
+  bindAllVideosAudio(content);
 
   viewer.classList.remove('hidden');
   // Scroll to viewer
@@ -100,6 +125,7 @@ function openGame(gameId) {
 
   content.innerHTML = template.innerHTML;
   if (title) title.textContent = FILE_TITLES[gameId] || gameId;
+  bindAllVideosAudio(content);
 
   modal.hidden = false;
   document.body.classList.add('modal-open');
@@ -243,6 +269,54 @@ function scrambleDigits(text) {
     SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]);
 }
 
+/* Il countdown e' scaduto: il blocco smette di essere un conto alla
+   rovescia e diventa l'annuncio dell'uscita, con il link per ascoltarla.
+   Funziona anche a pagina aperta dopo la data: tick() entra qui alla
+   prima esecuzione. */
+function markReleased(s) {
+  const release = RELEASES[s.clock.dataset.target];
+  s.signal.classList.add('acquired');
+
+  const label = s.signal.querySelector('.signal-label');
+  const block = s.signal.querySelector('.signal-release');
+  const nameEl = s.signal.querySelector('.signal-release-name');
+
+  if (!release) {
+    // Scadenza senza uscita associata: comportamento neutro
+    s.clock.textContent = 'T-000:00:00:00';
+    if (label) label.textContent = '◢ SIGNAL ACQUIRED ◣';
+    return;
+  }
+
+  if (label) label.textContent = '◢ ' + release.name + ' // OUT NOW ◣';
+  s.clock.hidden = true;
+  if (nameEl) nameEl.textContent = release.kind + ' — ' + release.name;
+
+  // Copertina cliccabile: porta allo stesso link Spotify.
+  // Precaricata per fissare l'aspect-ratio prima di mostrarla, altrimenti
+  // il box collassa finche' l'immagine non arriva.
+  const coverLink = s.signal.querySelector('.signal-release-cover');
+  const coverImg = coverLink && coverLink.querySelector('img');
+  if (coverLink) coverLink.href = release.url;
+  if (coverImg && release.cover) {
+    probeImage(release.cover).then(img => {
+      if (!img) {
+        // Copertina non ancora caricata sul sito: resta solo il titolo
+        coverLink.classList.add('no-cover');
+        return;
+      }
+      coverImg.style.aspectRatio = img.naturalWidth + ' / ' + img.naturalHeight;
+      coverImg.src = release.cover;
+      coverImg.alt = release.kind + ' — ' + release.name;
+    });
+  } else if (coverLink) {
+    coverLink.classList.add('no-cover');
+  }
+
+  if (block) block.classList.remove('hidden');
+}
+
+
 function initCountdowns() {
   const clocks = Array.from(document.querySelectorAll('.signal-clock[data-target]'));
   if (!clocks.length) return;
@@ -264,12 +338,7 @@ function initCountdowns() {
       const distance = s.target - now;
 
       if (distance <= 0) {
-        s.clock.textContent = 'T-000:00:00:00';
-        if (s.signal && !s.signal.classList.contains('acquired')) {
-          s.signal.classList.add('acquired');
-          const label = s.signal.querySelector('.signal-label');
-          if (label) label.textContent = '◢ SIGNAL ACQUIRED ◣';
-        }
+        if (s.signal && !s.signal.classList.contains('acquired')) markReleased(s);
         return;
       }
 
@@ -306,6 +375,15 @@ const SEQUENCES = {
     file: 'runner',
     entryId: 'runner-entry',
     msg: 'TUNNEL OPEN. escape_vector.exe MOUNTED.'
+  },
+  // Non e' una sequenza digitabile: la chiave e' il punteggio dello
+  // snake. Vive qui per riusare decryptChannel/isFileUnlocked/purge.
+  'snake20': {
+    file: 'still',
+    entryId: 'snake-entry',
+    msg: 'ARCHIVE BREACHED. cctv_still.jpg RECOVERED.',
+    notTypable: true,
+    tag: 'SCORE ' + SNAKE_REWARD_SCORE   // mostrato al posto della chiave interna
   }
 };
 
@@ -409,7 +487,7 @@ function decryptChannel(code, animate) {
     btn.classList.remove('locked', 'decrypting');
     btn.disabled = false;
     if (nameEl) nameEl.textContent = name;
-    if (tagEl) tagEl.textContent = code;
+    if (tagEl) tagEl.textContent = seq.tag || code;
     if (hintEl) hintEl.textContent = btn.dataset.hint || '';
     updateChannelsLabel();
   }
@@ -474,7 +552,8 @@ function relockChannels() {
 function trySequence(code) {
   const seq = SEQUENCES[code];
 
-  if (!seq) {
+  // notTypable: chiavi assegnate dal gioco, non inseribili a mano
+  if (!seq || seq.notTypable) {
     return { ok: false, text: 'SEQUENCE REJECTED // ATTEMPT LOGGED' };
   }
 
@@ -501,6 +580,37 @@ function trySequence(code) {
   setTimeout(() => openGame(seq.file), 1300);
 
   return { ok: true, text: seq.msg };
+}
+
+// Sblocco assegnato dal gioco, non da un codice digitato. Nessuno
+// stinger glitch: quello resta riservato agli sblocchi da sequenza.
+function unlockByKey(key) {
+  const seq = SEQUENCES[key];
+  if (!seq) return false;
+
+  const unlocked = getUnlocked();
+  if (unlocked.includes(key)) return false;
+
+  unlocked.push(key);
+  try {
+    localStorage.setItem(UNLOCK_KEY, JSON.stringify(unlocked));
+  } catch (err) {
+    console.log('localStorage non scrivibile', err);
+  }
+
+  decryptChannel(key, true);
+  triggerVibration([400, 100, 400]);
+  return true;
+}
+
+// Dalla nota di sblocco: porta al canale appena decriptato. Non si fa
+// da soli a partita in corso, e' il giocatore a decidere quando andarci.
+function goToUnlockedChannel() {
+  const entry = document.getElementById('snake-entry');
+  if (!entry) return;
+  entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  entry.classList.add('glitch-text');
+  setTimeout(() => entry.classList.remove('glitch-text'), 1500);
 }
 
 function setSequenceFeedback(text, kind) {
@@ -721,6 +831,18 @@ function initSnakeGame() {
       score++;
       document.getElementById('snake-score').innerText = score;
       triggerVibration(50); // Piccola vibrazione su mobile
+
+      // Soglia premio: sblocca la foto nel pannello dei canali
+      if (score >= SNAKE_REWARD_SCORE && unlockByKey('snake20')) {
+        const note = document.getElementById('snake-unlock-note');
+        if (note) {
+          note.textContent = '▸ SIGNAL RECOVERED // cctv_still.jpg — TAP TO OPEN';
+          note.hidden = false;
+        }
+        // Obiettivo raggiunto: l'avviso sparisce
+        const brief = document.getElementById('snake-briefing');
+        if (brief) brief.classList.add('hidden');
+      }
       spawnData();
       
       // Ogni 5 punti spawna un nuovo nemico e aumenta la velocità
@@ -787,8 +909,34 @@ function initSnakeGame() {
     }
   }
 
-  // Loop iniziale
-  snakeGameInterval = setInterval(gameLoop, gameSpeed);
+  // Briefing: chi non ha ancora il premio deve sapere che esiste, prima
+  // di iniziare. Il loop non parte finche' non preme BEGIN.
+  const briefing = document.getElementById('snake-briefing');
+  const beginBtn = document.getElementById('snake-begin');
+  const scoreLabel = document.getElementById('snake-briefing-score');
+  const note = document.getElementById('snake-unlock-note');
+  if (note) { note.hidden = true; note.textContent = ''; }
+  if (scoreLabel) scoreLabel.textContent = SNAKE_REWARD_SCORE;
+  const scoreLabelMini = document.getElementById('snake-briefing-score-mini');
+  if (scoreLabelMini) scoreLabelMini.textContent = SNAKE_REWARD_SCORE;
+
+  function startLoop() {
+    // Non si nasconde: si riduce a una riga, cosi' l'obiettivo resta
+    // sotto gli occhi mentre si gioca.
+    if (briefing) briefing.classList.add('running');
+    if (snakeGameInterval) clearInterval(snakeGameInterval);
+    snakeGameInterval = setInterval(gameLoop, gameSpeed);
+  }
+
+  if (briefing && beginBtn && !isFileUnlocked('still')) {
+    briefing.classList.remove('hidden', 'running');
+    draw();  // il campo e' gia' visibile: l'avviso sta sopra, non davanti
+    beginBtn.addEventListener('click', startLoop, { once: true });
+  } else {
+    // Premio gia' ottenuto: nessun avviso, si parte subito
+    if (briefing) briefing.classList.add('hidden');
+    startLoop();
+  }
 }
 
 /* ============================================================
@@ -833,7 +981,6 @@ function initMemoryGame() {
   memMoves = 0;
 
   const stage = document.querySelector('.mem-stage');
-  const mosaic = document.getElementById('mem-mosaic');
   const reveal = document.getElementById('mem-reveal');
   const viewBtn = document.getElementById('mem-view');
 
@@ -841,10 +988,6 @@ function initMemoryGame() {
     stage.style.setProperty('--mem-cols', MEM_COLS);
     stage.style.setProperty('--mem-rows', MEM_ROWS);
     stage.style.setProperty('--mem-ar', MEM_COLS + ' / ' + MEM_ROWS);
-  }
-  if (mosaic) {
-    mosaic.classList.add('hidden');
-    mosaic.innerHTML = '';
   }
   if (reveal) reveal.classList.add('hidden');
   grid.classList.remove('faded');
@@ -934,33 +1077,62 @@ function solveMemoryGame() {
   showMemoryReveal();
 }
 
+/* Premio del memory: risolte le coppie la griglia sfuma e parte il video. */
 function showMemoryReveal() {
   const grid = document.getElementById('mem-grid');
-  const stage = document.querySelector('.mem-stage');
-  const mosaic = document.getElementById('mem-mosaic');
   const reveal = document.getElementById('mem-reveal');
-  const msg = document.getElementById('mem-reveal-msg');
   const viewBtn = document.getElementById('mem-view');
-  if (!grid || !stage || !mosaic || !reveal || !msg) return;
+  if (!grid || !reveal) return;
 
   if (viewBtn) viewBtn.hidden = true;
   reveal.classList.remove('hidden');
+  grid.classList.add('faded');
 
-  probeImage(MEMORY_REVEAL_SRC).then(img => {
+  showRewardVideo({
+    video: document.getElementById('mem-video'),
+    msg: document.getElementById('mem-reveal-msg'),
+    src: MEMORY_REWARD_SRC,
+    text: 'Fragment reassembled. Playback authorised.',
+    scrollTo: reveal
+  });
+}
+
+/* Premio dello snake: la foto si riassembla a mosaico. E' l'effetto che
+   prima aveva il memory, spostato qui insieme all'immagine. */
+function initStillReveal() {
+  revealImageMosaic({
+    stage: document.querySelector('.mem-stage'),
+    mosaic: document.getElementById('still-mosaic'),
+    msg: document.getElementById('still-msg'),
+    src: SNAKE_REWARD_SRC,
+    text: 'Frame recovered. Nothing here is an accident.'
+  });
+}
+
+/* Riassembla un'immagine a mosaico dalle celle di una griglia.
+   Nata nel memory, ora usata dal premio dello snake. */
+function revealImageMosaic(opts) {
+  const stage = opts.stage, mosaic = opts.mosaic, msg = opts.msg, src = opts.src;
+  if (!stage || !mosaic || !msg) return;
+
+  const baseClass = msg.className.replace(/\s*asset-pending/, '');
+
+  probeImage(src).then(img => {
     if (!img) {
-      // L'immagine non è ancora stata caricata sul sito
-      msg.className = 'mem-reveal-msg asset-pending';
-      msg.textContent = '[ASSET NOT FOUND // ' + MEMORY_REVEAL_SRC + ' PENDING]';
+      // L'immagine non e' ancora stata caricata sul sito
+      msg.className = baseClass + ' asset-pending';
+      msg.textContent = '[ASSET NOT FOUND // ' + src + ' PENDING]';
       return;
     }
 
-    msg.className = 'mem-reveal-msg';
-    msg.textContent = 'Sectors realigned. One image. Nothing here is an accident.';
+    msg.className = baseClass;
+    msg.textContent = opts.text || 'Sectors realigned. Nothing here is an accident.';
 
-    // Il mosaico assume le proporzioni reali dell'immagine. La griglia
-    // sottostante si deforma con esso, ma a quel punto è già invisibile.
+    // Il mosaico assume le proporzioni reali dell'immagine
+    stage.style.setProperty('--mem-cols', MEM_COLS);
+    stage.style.setProperty('--mem-rows', MEM_ROWS);
     stage.style.setProperty('--mem-ar', img.naturalWidth + ' / ' + img.naturalHeight);
-    grid.classList.add('faded');
+    if (opts.fadeOut) opts.fadeOut.classList.add('faded');
 
     const total = MEM_COLS * MEM_ROWS;
     // Ogni cella mostra 1/(cols*rows) dell'immagine: la colonna n va
@@ -973,7 +1145,7 @@ function showMemoryReveal() {
     for (let i = 0; i < total; i++) {
       const cell = document.createElement('div');
       cell.className = 'mem-cell';
-      cell.style.backgroundImage = 'url("' + MEMORY_REVEAL_SRC + '")';
+      cell.style.backgroundImage = 'url("' + src + '")';
       cell.style.backgroundPosition =
         (i % MEM_COLS) * colStep + '% ' +
         Math.floor(i / MEM_COLS) * rowStep + '%';
@@ -1340,31 +1512,45 @@ function showRunnerOverlay(title, message, isWin) {
   overlay.classList.remove('hidden');
 }
 
-function showRunnerReward() {
-  const reward = document.getElementById('runner-reward');
-  const msg = document.getElementById('runner-reward-msg');
-  const video = document.getElementById('runner-video');
-  const viewBtn = document.getElementById('runner-view');
-  if (!reward || !msg || !video) return;
+/* Mostra un video premio con fallback se il file non c'e' ancora.
+   Condivisa da memory, runner e canali di uscita. */
+function showRewardVideo(opts) {
+  const video = opts.video, msg = opts.msg, src = opts.src;
+  if (!video || !msg) return;
 
-  if (viewBtn) viewBtn.hidden = true;
-  reward.classList.remove('hidden');
+  const baseClass = msg.className.replace(/\s*asset-pending/, '');
 
-  probeVideo(RUNNER_REWARD_SRC).then(exists => {
+  probeVideo(src).then(exists => {
     if (!exists) {
-      // Il video non è ancora stato caricato sul sito
+      // Il video non e' ancora stato caricato sul sito
       video.classList.add('hidden');
-      msg.className = 'runner-reward-msg asset-pending';
-      msg.textContent = '[BROADCAST NOT YET LIVE // ' + RUNNER_REWARD_SRC + ' PENDING]';
+      msg.className = baseClass + ' asset-pending';
+      msg.textContent = '[BROADCAST NOT YET LIVE // ' + src + ' PENDING]';
       return;
     }
 
     video.classList.remove('hidden');
-    msg.className = 'runner-reward-msg';
-    msg.textContent = 'Recording intercepted. Playback authorised.';
+    msg.className = baseClass;
+    msg.textContent = opts.text || 'Recording intercepted. Playback authorised.';
     bindRewardVideoAudio(video);
     video.play().catch(e => console.log('Video autoplay blocked', e));
-    reward.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (opts.scrollTo) opts.scrollTo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+
+function showRunnerReward() {
+  const reward = document.getElementById('runner-reward');
+  const viewBtn = document.getElementById('runner-view');
+  if (!reward) return;
+
+  if (viewBtn) viewBtn.hidden = true;
+  reward.classList.remove('hidden');
+
+  showRewardVideo({
+    video: document.getElementById('runner-video'),
+    msg: document.getElementById('runner-reward-msg'),
+    src: RUNNER_REWARD_SRC,
+    scrollTo: reward
   });
 }
 
@@ -1395,6 +1581,14 @@ function guardDroneAudio() {
   drone.addEventListener('play', () => {
     if (isSiteVideoPlaying()) drone.pause();
   });
+}
+
+// Aggancia la gestione audio a TUTTI i video di un contenuto appena
+// iniettato: senza, il drone continuerebbe a suonare sopra i video dei
+// footage e del memory, che non passano da showRewardVideo().
+function bindAllVideosAudio(root) {
+  if (!root) return;
+  root.querySelectorAll('video').forEach(bindRewardVideoAudio);
 }
 
 function bindRewardVideoAudio(video) {
